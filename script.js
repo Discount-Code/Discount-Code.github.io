@@ -183,7 +183,7 @@ function renderResults(data) {
 
     // 網站連結 (可點擊連結)
     const linkTd = document.createElement('td');
-    const linkValue = row["網站連結"]; // <-- 對應 CSV 頭的名稱
+    const linkValue = row["網站連結"] || ''; // <-- 對應 CSV 頭的名稱
     if (linkValue) {
       const linkA = document.createElement('a');
       linkA.href = linkValue;
