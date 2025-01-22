@@ -10,7 +10,7 @@ window.addEventListener('DOMContentLoaded', () => {
  * 從 Google Sheet 已「發布」的 CSV 連結抓取資料
  */
 function fetchData() {
-  // 這裡直接替換為你給的 CSV URL
+  // 這裡直接替換為你自己的 CSV URL
   const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQqcr7zoSqAYAvBlYdPJ1SE1COFJ-ZSg71ux2D-XSgv-EtBoUkV_9KdfH713u8P-94yRDx-17cvl7Ov/pub?gid=0&single=true&output=csv';
 
   fetch(csvUrl)
@@ -20,7 +20,7 @@ function fetchData() {
       allData = parseCSV(csvString);
       // 動態填充下拉選單選項
       populateSelectOptions(allData);
-      // 預設先顯示全部資料
+      // 預設先顯示全部資料（帶入空白搜尋）
       renderResults(allData);
     })
     .catch(error => {
@@ -43,7 +43,6 @@ function parseCSV(csvString) {
     const values = row.split(',');
     let obj = {};
     headers.forEach((header, index) => {
-      // 去除可能的空白
       obj[header.trim()] = values[index] ? values[index].trim() : '';
     });
     return obj;
@@ -67,7 +66,7 @@ function populateSelectOptions(data) {
   const influencers = new Set();
 
   data.forEach(item => {
-    // 注意欄位名稱需與 CSV 標題一致
+    // 注意欄位名稱需與 CSV 裡的標題一致
     brands.add(item["品牌"]);
     products.add(item["商品"]);
     categories.add(item["分類"]);
@@ -77,10 +76,12 @@ function populateSelectOptions(data) {
   // 將 Set 的值動態產生 <option>
   function addOptionsToSelect(selectElement, itemsSet) {
     itemsSet.forEach(value => {
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = value;
-      selectElement.appendChild(option);
+      if (value) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        selectElement.appendChild(option);
+      }
     });
   }
 
@@ -94,47 +95,92 @@ function populateSelectOptions(data) {
   productSelect.addEventListener('change', filterData);
   categorySelect.addEventListener('change', filterData);
   influencerSelect.addEventListener('change', filterData);
+
+  // 監聽搜尋按鈕
+  const searchButton = document.getElementById('searchButton');
+  searchButton.addEventListener('click', filterData);
+
+  // 另外也可監聽搜尋框的 keyup, 例如要即時搜尋可加這一行
+  // document.getElementById('searchInput').addEventListener('keyup', filterData);
 }
 
 /**
- * 根據當前下拉選單的選取值，篩選 allData
+ * 根據當前下拉選單 & 搜尋關鍵字，篩選 allData
  */
 function filterData() {
   const selectedBrand = document.getElementById('brandSelect').value;
   const selectedProduct = document.getElementById('productSelect').value;
   const selectedCategory = document.getElementById('categorySelect').value;
   const selectedInfluencer = document.getElementById('influencerSelect').value;
+  const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
 
-  // 下拉選單的 value 為空("")時，就代表「不篩選」
   const filtered = allData.filter(row => {
+    // 下拉選單的 value 為空("")時，就代表「不篩選」
     const brandMatch = !selectedBrand || row["品牌"] === selectedBrand;
     const productMatch = !selectedProduct || row["商品"] === selectedProduct;
     const categoryMatch = !selectedCategory || row["分類"] === selectedCategory;
     const influencerMatch = !selectedInfluencer || row["網紅"] === selectedInfluencer;
 
-    return brandMatch && productMatch && categoryMatch && influencerMatch;
+    // 搜尋功能只針對「品牌」及「商品」
+    // 若 searchTerm 為空，則不篩這個條件
+    let searchMatch = true;
+    if (searchTerm) {
+      const brandLower = row["品牌"].toLowerCase();
+      const productLower = row["商品"].toLowerCase();
+      // 只要品牌或商品包含 searchTerm 就算符合
+      searchMatch = brandLower.includes(searchTerm) || productLower.includes(searchTerm);
+    }
+
+    return brandMatch && productMatch && categoryMatch && influencerMatch && searchMatch;
   });
 
   renderResults(filtered);
 }
 
 /**
- * 將過濾後的資料渲染到網頁
+ * 將過濾後的資料渲染到網頁(表格)
  */
 function renderResults(data) {
-  const resultsDiv = document.getElementById('results');
+  const resultsTable = document.getElementById('resultsTable');
+  const tbody = resultsTable.querySelector('tbody');
+  const noDataMessage = document.getElementById('noDataMessage');
+
   // 清空舊內容
-  resultsDiv.innerHTML = '';
+  tbody.innerHTML = '';
 
   if (data.length === 0) {
-    resultsDiv.textContent = '沒有符合的資料';
+    // 若無符合資料，就顯示提示文字
+    noDataMessage.style.display = 'block';
     return;
+  } else {
+    noDataMessage.style.display = 'none';
   }
 
+  // 依照資料數量動態生成表格列
   data.forEach(row => {
-    const p = document.createElement('p');
-    // 依照你想顯示的欄位動態組字串
-    p.textContent = `品牌：${row["品牌"]} | 商品：${row["商品"]} | 分類：${row["分類"]} | 網紅：${row["網紅"]} | 折扣碼：${row["折扣碼"]}`;
-    resultsDiv.appendChild(p);
+    const tr = document.createElement('tr');
+
+    // 依順序插入品牌、商品、分類、網紅、折扣碼
+    const brandTd = document.createElement('td');
+    brandTd.textContent = row["品牌"] || '';
+    tr.appendChild(brandTd);
+
+    const productTd = document.createElement('td');
+    productTd.textContent = row["商品"] || '';
+    tr.appendChild(productTd);
+
+    const categoryTd = document.createElement('td');
+    categoryTd.textContent = row["分類"] || '';
+    tr.appendChild(categoryTd);
+
+    const influencerTd = document.createElement('td');
+    influencerTd.textContent = row["網紅"] || '';
+    tr.appendChild(influencerTd);
+
+    const discountTd = document.createElement('td');
+    discountTd.textContent = row["折扣碼"] || '';
+    tr.appendChild(discountTd);
+
+    tbody.appendChild(tr);
   });
 }
