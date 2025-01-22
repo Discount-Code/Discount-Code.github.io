@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>網紅折扣碼大蒐集</title>
+  <style>
+    /* 基本排版，讓表格有邊框 */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    /* 篩選與搜尋區域排版 */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .filters label {
+      display: inline-block;
+    }
+    #searchContainer {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    #searchInput {
+      padding: 0.3rem;
+    }
+    #searchButton {
+      padding: 0.3rem 0.6rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>網紅折扣碼大蒐集</h1>
+
+  <!-- 篩選與搜尋區 -->
+  <div class="filters">
+    <label>品牌：
+      <select id="brandSelect">
+        <option value="">全部</option>
+      </select>
+    </label>
+
+    <label>商品：
+      <select id="productSelect">
+        <option value="">全部</option>
+      </select>
+    </label>
+
+    <label>分類：
+      <select id="categorySelect">
+        <option value="">全部</option>
+      </select>
+    </label>
+
+    <label>網紅：
+      <select id="influencerSelect">
+        <option value="">全部</option>
+      </select>
+    </label>
+
+    <!-- 搜尋區（針對品牌、商品） -->
+    <div id="searchContainer">
+      <label for="searchInput">搜尋：</label>
+      <input type="text" id="searchInput" placeholder="請輸入關鍵字...">
+      <button id="searchButton">搜尋</button>
+    </div>
+  </div>
+
+  <!-- 顯示篩選結果的區域，這裡用表格呈現 -->
+  <table id="resultsTable">
+    <thead>
+      <tr>
+        <th>品牌</th>
+        <th>商品</th>
+        <th>分類</th>
+        <th>網紅</th>
+        <th>折扣碼</th>
+        <th>連結</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 篩選後的資料會動態插入這裡 -->
+    </tbody>
+  </table>
+
+  <!-- 用來顯示若沒符合資料時的訊息 -->
+  <p id="noDataMessage" style="color: red; display: none;">
+    沒有符合的資料
+  </p>
+
+  <!-- 將主要的邏輯放到 script.js 中 -->
+  <script src="script.js"></script>
+</body>
+</html>
